@@ -18,7 +18,12 @@ endmodule
 module ARITHMETIC-EVAL
   imports ARITHMETIC-SYNTAX
   imports INT
-  imports BOOL
 
   syntax Int ::= eval(Exp) [function]
+  rule eval(I:Int) => I
+  rule eval(- I)   => 0 -Int eval(I)
+  rule eval(A + B) => eval(A) +Int eval(B)
+  rule eval(A - B) => eval(A) -Int eval(B)
+  rule eval(A * B) => eval(A) *Int eval(B)
+  rule eval(A / B) => eval(A) /Int eval(B)
 endmodule
