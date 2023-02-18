@@ -25,16 +25,14 @@ jobs:
       - name: 'Update pyk release tag'
         run: |
           PYK_VERSION=$(cat ./deps/pyk_release)
-          cd kmir
           sed -i 's!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "[v0-9\.]*" }!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "'${PYK_VERSION}'" }!' pyproject.toml
           poetry update
           git add pyproject.toml poetry.lock
-          git commit -m 'kmir/{pyproject.toml,poetry.lock}: sync Poetry files' || true
+          git commit -m '{pyproject.toml,poetry.lock}: sync Poetry files' || true
       - name: 'Update Nix flake inputs'
         run: |
-          cd kmir
           nix --extra-experimental-features 'nix-command flakes' --show-trace flake update
           git add flake.nix flake.lock
-          git commit -m 'kmir/flake.{nix,lock}: update Nix derivations' || true
+          git commit -m 'flake.{nix,lock}: update Nix derivations' || true
       - name: 'Push updates'
         run: git push
