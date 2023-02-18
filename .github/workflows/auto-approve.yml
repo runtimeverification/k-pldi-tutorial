@@ -1,0 +1,9 @@
+name: Auto approve
+on: pull_request_target
+jobs:
+  auto-approve:
+    runs-on: [self-hosted, linux, flyweight]
+    steps:
+      - uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.JENKINS_GITHUB_PAT }}
