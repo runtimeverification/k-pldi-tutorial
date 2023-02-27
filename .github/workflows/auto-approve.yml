@@ -1,0 +1,12 @@
+name: Auto approve
+on: [pull_request_target, workflow_dispatch]
+jobs:
+  auto-approve:
+    runs-on: [self-hosted, linux, flyweight]
+    permissions:
+      pull-requests: write
+    if: github.actor == 'Baltoli'
+    steps:
+      - uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.JENKINS_GITHUB_PAT }}
