@@ -28,6 +28,9 @@ pytest = "*"
 pytest-mock = "*"
 pytest-xdist = "*"
 
+[tool.poetry.scripts]
+kimp = "k_pldi_tutorial.__main__:main"
+
 [tool.isort]
 profile = "black"
 line_length = 120
