@@ -3,12 +3,11 @@ name = "k-pldi-tutorial"
 version = "0.1.0"
 source = "k-src"
 
-[targets.llvm]
+[targets.arithmetic]
 backend = "llvm"
-main-file = "imp-pldi.md"
-syntax-module = "IMP-PLDI-SYNTAX"
+main-file = "arithmetic.k"
 
-[targets.haskell]
-backend = "haskell"
-main-file = "imp-pldi.md"
-syntax-module = "IMP-PLDI-SYNTAX"
+[targets.arithmetic-eval]
+backend = "llvm"
+main-file = "arithmetic-eval.k"
+syntax-module = "ARITHMETIC-SYNTAX"
