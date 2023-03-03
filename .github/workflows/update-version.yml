@@ -19,7 +19,7 @@ jobs:
         with:
           token: ${{ secrets.JENKINS_GITHUB_PAT }}
       - name: 'Install Nix'
-        uses: cachix/install-nix-action@v15
+        uses: cachix/install-nix-action@v20
         with:
           # Keep nix at <=2.7 https://github.com/NixOS/nix/issues/6572
           # but >= 2.4 due to ZSTD compression done by cachix >=1.1 https://blog.cachix.org/posts/2022-12-19-zstd-compression/
