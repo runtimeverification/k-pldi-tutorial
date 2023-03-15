@@ -5,7 +5,7 @@ jobs:
     runs-on: [self-hosted, linux, flyweight]
     permissions:
       pull-requests: write
-    if: github.actor == 'Baltoli'
+    if: github.event.pull_request.user.login == 'Baltoli'
     steps:
       - uses: hmarr/auto-approve-action@v3
         with:
