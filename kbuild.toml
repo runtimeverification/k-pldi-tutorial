@@ -7,6 +7,7 @@ source = "k-src"
 backend = "llvm"
 main-file = "imp.md"
 syntax-module = "IMP-SYNTAX"
+gen-bison-parser = true
 
 [targets.haskell]
 backend = "haskell"

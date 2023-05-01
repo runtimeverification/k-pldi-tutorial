@@ -1,4 +1,5 @@
 import os
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any
@@ -14,7 +15,13 @@ def exec_run(
     **kwargs: Any,
 ) -> None:
     kimp = KIMP(definition_dir=definition_dir)
-    kimp.run_imp_file(main_file=input_file)
+    result = kimp.run_imp_file(main_file=input_file)
+    out = kimp.postprocess(result)
+
+    for err in out[1]:
+        print(err, file=sys.stderr)
+
+    sys.exit(out[0])
 
 
 def create_argument_parser() -> ArgumentParser:

@@ -34,6 +34,8 @@ module IMP
   configuration <T color="yellow">
                   <k color="green"> $PGM:Pgm </k>
                   <state color="red"> .Map </state>
+                  <errors> .List </errors>
+                  <exit-code> 0 </exit-code>
                 </T>
 
   rule <k> X:Id => I ...</k> <state>... X |-> I ...</state>
