@@ -4,44 +4,48 @@ module IMP-SYNTAX
 
   syntax AExp  ::= Int | Id
                  | "-" Int                    [format(%1%2)]
-                 | AExp "/" AExp              [left, strict, color(pink)]
+                 | AExp "/" AExp              [left, strict]
                  | "(" AExp ")"               [bracket]
-                 > AExp "+" AExp              [left, strict, color(pink)]
+                 > AExp "+" AExp              [left, strict]
   syntax BExp  ::= Bool
-                 | AExp "<=" AExp             [seqstrict, latex({#1}\leq{#2}), color(pink)]
-                 | "!" BExp                   [strict, color(pink)]
+                 | AExp "<=" AExp             [seqstrict]
+                 | "!" BExp                   [strict]
                  | "(" BExp ")"               [bracket]
-                 > BExp "&&" BExp             [left, strict(1), color(pink)]
+                 > BExp "&&" BExp             [left, strict(1)]
   syntax Block ::= "{" "}"
                  | "{" Stmt "}"               [format(%1%i%n%2%d%n%3)]
   syntax Stmt  ::= Block
-                 | "#woo"
-                 | Id "=" AExp ";"            [strict(2), color(pink), format(%1 %2 %3%4)]
+                 | Id "=" AExp ";"            [strict(2), format(%1 %2 %3%4)]
                  | "if" "(" BExp ")"
-                   Block "else" Block         [strict(1), colors(yellow, white, white, yellow), format(%1 %2%3%4 %5 %6 %7)]
-                 | "while" "(" BExp ")" Block [colors(yellow,white,white), format(%1 %2%3%4 %5)]
+                   Block "else" Block         [strict(1), format(%1 %2%3%4 %5 %6 %7)]
+                 | "while" "(" BExp ")" Block [format(%1 %2%3%4 %5)]
+                 | "assert" BExp
                  > Stmt Stmt                  [left, format(%1%n%2)]
 
-  syntax Pgm ::= "int" Ids ";" Stmt           [format(%1 %2%3%n%4), colors(yellow,pink)]
+  syntax Pgm ::= "int" Ids ";" Stmt           [format(%1 %2%3%n%4)]
   syntax Ids ::= List{Id,","}                 [format(%1%2 %3)]
 endmodule
 
 module IMP
   imports IMP-SYNTAX
   imports DOMAINS
+  imports K-REFLECTION
 
   syntax KResult ::= Int | Bool
 
-  configuration <T color="yellow">
-                  <k color="green"> $PGM:Pgm </k>
-                  <state color="red"> .Map </state>
-                  <errors> .List </errors>
-                  <exit-code> 0 </exit-code>
-                </T>
+  configuration
+    <T>
+      <k color="green"> $PGM:Pgm </k>
+      <state color="red"> .Map </state>
+      <errors> .List </errors>
+      <exit-code> 0 </exit-code>
+    </T>
 
-  rule <k> X:Id => I ...</k> <state>... X |-> I ...</state>
+  rule
+    <k> X:Id => I ...</k>
+    <state> X |-> I ...</state>
 
-  rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
+  rule I1 / I2 => I1 /Int I2 requires I2 =/=Int 0
   rule I1 + I2 => I1 +Int I2
   rule - I1 => 0 -Int I1
 
@@ -50,20 +54,38 @@ module IMP
   rule true && B => B
   rule false && _ => false
 
-  rule {} => .   [structural]
-  rule {S} => S  [structural]
+  rule {} => .
+  rule {S} => S
 
-  rule <k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>
+  rule
+    <k> X = I:Int; => . ...</k>
+    <state> X |-> (_ => I) ...</state>
 
-  rule S1:Stmt S2:Stmt => S1 ~> S2  [structural]
+  rule S1:Stmt S2:Stmt => S1 ~> S2
 
   rule if (true)  S else _ => S
   rule if (false) _ else S => S
 
-  rule while (B) S => if (B) {S while (B) S} else {}  [structural]
+  rule while (B) S => if (B) {S while (B) S} else {}
 
-  rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
+  syntax Stmt ::= #assert(BExp, String) [strict(1)]
+  rule assert B => #assert(B, #unparseKORE(B))
+  rule #assert(true,  _) => .
+  rule
+    <k> (#assert(false, S) ~> _) => . </k>
+    <errors>
+      .List =>
+        ListItem("Assertion failed:") 
+        ListItem("::kore::" +String S)
+      ...
+    </errors>
+    <exit-code> _ => 1 </exit-code>
+
+  rule
+    <k> int (X,Xs => Xs);_ </k>
+    <state> Rho:Map (.Map => X|->0) </state>
     requires notBool (X in keys(Rho))
-  rule int .Ids; S => S  [structural]
+
+  rule int .Ids; S => S
 endmodule
 ```

@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 from typing import Collection, Tuple
 
+from pyk.dequote import dequote_str
 from pyk.kast.inner import KApply, KInner, KSequence, KToken
 from pyk.kast.manip import cell_label_to_var_name, flatten_label, get_cell, remove_generated_cells
 from pyk.kore import syntax as kore
@@ -44,6 +45,14 @@ def _error_list(term: KInner) -> list[str]:
     return _list_strings(errors)
 
 
+def _format_error(error: str, kprint: KPrint) -> str:
+    if error.startswith('::kore::'):
+        kore = KoreParser(dequote_str(error[8:])).pattern()
+        return kprint.kore_to_pretty(kore).strip()
+
+    return error
+
+
 def _exit_code(term: KInner) -> int:
     exit_cell = get_cell(term, cell_label_to_var_name('<exit-code>'))
     return _token_to_int(exit_cell) or 0
@@ -81,7 +90,7 @@ class KIMP(KRun):
             pretty_config = kprint.pretty_print(remove_generated_cells(kast))
             return (139, [f'Failed to evaluate program; stuck config is:\n{pretty_config}'])
 
-        return (_exit_code(kast), _error_list(kast))
+        return (_exit_code(kast), [_format_error(e, kprint) for e in _error_list(kast)])
 
     def parse_imp(self, file: Path) -> kore.Pattern:
         command = [str(self._imp_parser), str(file)]
