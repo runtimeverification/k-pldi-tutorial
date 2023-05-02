@@ -15,6 +15,7 @@ module IMP-SYNTAX
   syntax Block ::= "{" "}"
                  | "{" Stmt "}"               [format(%1%i%n%2%d%n%3)]
   syntax Stmt  ::= Block
+                 | "#woo"
                  | Id "=" AExp ";"            [strict(2), color(pink), format(%1 %2 %3%4)]
                  | "if" "(" BExp ")"
                    Block "else" Block         [strict(1), colors(yellow, white, white, yellow), format(%1 %2%3%4 %5 %6 %7)]
