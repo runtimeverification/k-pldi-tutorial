@@ -5,10 +5,11 @@ source = "k-src"
 
 [targets.llvm]
 backend = "llvm"
-main-file = "imp-pldi.md"
-syntax-module = "IMP-PLDI-SYNTAX"
+main-file = "imp.md"
+syntax-module = "IMP-SYNTAX"
+gen-bison-parser = true
 
 [targets.haskell]
 backend = "haskell"
-main-file = "imp-pldi.md"
-syntax-module = "IMP-PLDI-SYNTAX"
+main-file = "imp.md"
+syntax-module = "IMP-SYNTAX"
