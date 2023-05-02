@@ -16,12 +16,12 @@ def exec_run(
 ) -> None:
     kimp = KIMP(definition_dir=definition_dir)
     result = kimp.run_imp_file(main_file=input_file)
-    out = kimp.postprocess(result)
+    rc, errors = kimp.postprocess(result)
 
-    for err in out[1]:
+    for err in errors:
         print(err, file=sys.stderr)
 
-    sys.exit(out[0])
+    sys.exit(rc)
 
 
 def create_argument_parser() -> ArgumentParser:

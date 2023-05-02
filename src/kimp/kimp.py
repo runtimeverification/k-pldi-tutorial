@@ -2,8 +2,8 @@ import subprocess
 from pathlib import Path
 from typing import Collection, Tuple
 
-from pyk.kast.inner import KApply, KInner, KToken
-from pyk.kast.manip import cell_label_to_var_name, flatten_label, get_cell
+from pyk.kast.inner import KApply, KInner, KSequence, KToken
+from pyk.kast.manip import cell_label_to_var_name, flatten_label, get_cell, remove_generated_cells
 from pyk.kore import syntax as kore
 from pyk.kore.parser import KoreParser
 from pyk.ktool.kprint import KPrint
@@ -49,8 +49,14 @@ def _exit_code(term: KInner) -> int:
     return _token_to_int(exit_cell) or 0
 
 
+def _is_dot_k(term: KInner) -> bool:
+    if isinstance(term, KSequence) and term.arity == 0:
+        return True
+
+    return False
+
+
 class KIMP(KRun):
-    _imp_parser: Path
     _definition_dir: Path
 
     def __init__(
@@ -59,7 +65,6 @@ class KIMP(KRun):
     ) -> None:
         KRun.__init__(self, definition_dir)
         self._definition_dir = definition_dir
-        self._imp_parser = definition_dir / 'parser_Pgm_IMP-SYNTAX'
 
     def run_imp_file(
         self,
@@ -71,9 +76,18 @@ class KIMP(KRun):
         kprint = KPrint(self._definition_dir)
         kast = kprint.kore_to_kast(pattern)
 
+        k_cell = get_cell(kast, cell_label_to_var_name('<k>'))
+        if not _is_dot_k(k_cell):
+            pretty_config = kprint.pretty_print(remove_generated_cells(kast))
+            return (139, [f'Failed to evaluate program; stuck config is:\n{pretty_config}'])
+
         return (_exit_code(kast), _error_list(kast))
 
     def parse_imp(self, file: Path) -> kore.Pattern:
         command = [str(self._imp_parser), str(file)]
         result = subprocess.run(command, stdout=subprocess.PIPE, check=True, text=True)
         return KoreParser(result.stdout).pattern()
+
+    @property
+    def _imp_parser(self) -> Path:
+        return self._definition_dir / 'parser_Pgm_IMP-SYNTAX'
