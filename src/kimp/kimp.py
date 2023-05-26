@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 from typing import Collection, Tuple
 
-from pyk.dequote import dequote_str
+from pyk.dequote import dequote_string
 from pyk.kast.inner import KApply, KInner, KSequence, KToken
 from pyk.kast.manip import cell_label_to_var_name, flatten_label, get_cell, remove_generated_cells
 from pyk.kore import syntax as kore
@@ -47,7 +47,7 @@ def _error_list(term: KInner) -> list[str]:
 
 def _format_error(error: str, kprint: KPrint) -> str:
     if error.startswith('::kore::'):
-        kore = KoreParser(dequote_str(error[8:])).pattern()
+        kore = KoreParser(dequote_string(error[8:])).pattern()
         return kprint.kore_to_pretty(kore).strip()
 
     return error
