@@ -2,7 +2,7 @@ module ARITHMETIC-EVAL-SYNTAX
   imports UNSIGNED-INT-SYNTAX
 
   syntax Exp ::= Int
-               | "-" Exp      [non-assoc, group(neg)]
+               | "-" Exp      [group(neg)]
                | Exp "+" Exp  [left, group(add)]
                | Exp "-" Exp  [left, group(sub)]
                | Exp "*" Exp  [left, group(mul)]
