@@ -47,7 +47,7 @@ module PLDI-IMP-SYNTAX
   syntax Decls    ::= NeList{Decl, ""} [prefer]
   syntax Pgm      ::= Decls
 
-  syntax priorities neg > mul div > add sub > eq neq gteq gt lteq lt > assign > seq
+  syntax priorities neg > mul div > add sub > eq neq gteq gt lteq lt > if while assign > seq
 endmodule
 
 module PLDI-IMP
