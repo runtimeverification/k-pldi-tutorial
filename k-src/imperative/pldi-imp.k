@@ -1,11 +1,13 @@
 module PLDI-IMP-SYNTAX
   imports ID-SYNTAX
   imports UNSIGNED-INT-SYNTAX
+  imports STRING-SYNTAX
   imports BOOL
 
   syntax Value    ::= "(" ")"
                     | Int
                     | Bool
+                    | String
 
   syntax Expr     ::= Value
                     | Id
@@ -53,6 +55,7 @@ module PLDI-IMP
   imports LIST
   imports INT
   imports MAP
+  imports STRING
 
   syntax Id       ::= "dummy" [token]
                     | "main"  [token]
@@ -116,7 +119,6 @@ module PLDI-IMP
   rule
     <k> X = V:Value => V ...</k>
     <env> E => E [ X <- V ] </env>
-    requires X in_keys(E)
 
   rule
     <k> X:Id => V ...</k>
@@ -137,6 +139,11 @@ module PLDI-IMP
     <args> E => E [ X <- V ] </args>
 
   syntax KItem ::= frame(K, Map)
+
+  syntax K ::= #log(String) [function, total, hook(PLDI.log)]
+
+  syntax Id ::= "log" [token]
+  rule log(S) => #log(S)
 
   rule
     <k> (X (AS) ~> Rest) => bind(AS, PS) ~> Body </k>

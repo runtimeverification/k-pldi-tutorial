@@ -13,5 +13,8 @@ fn y(a, b, c) {
 }
 
 fn main() {
-  y(1, 5, 3) - 18
+  log("Hello!");
+  ret = y(1, 2, 3) - 18;
+  log("Nearly done...");
+  ret
 }
