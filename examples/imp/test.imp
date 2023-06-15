@@ -1,20 +1,14 @@
-fn x(a, b, c) {
-  a = 2 + 2 * 3;
-  b = 3;
-  b
-}
-
-fn y(a, b, c) {
-  if (b <= c) {
-    (a + b + c) * x(x(1, 21, 1), b, c)
+fn y(n) {
+  if(n == 0) {
+    log("Blastoff!");
+    return;
   } else {
-    0
+    log("Counting down...");
+    return y(n - 1);
   }
 }
 
 fn main() {
-  log("Hello!");
-  ret = y(1, 2, 3) - 18;
-  log("Nearly done...");
-  ret
+  y(10);
+  return 0;
 }

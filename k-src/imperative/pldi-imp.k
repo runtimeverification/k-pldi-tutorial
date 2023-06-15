@@ -12,8 +12,10 @@ module PLDI-IMP-SYNTAX
   syntax Expr     ::= Value
                     | Id
                     | Id "(" Args ")"
-                    | Expr ";" Expr [seq, right]
                     | "(" Expr ")" [bracket]
+
+  syntax Stmt     ::= Expr ";"
+                    | Stmt Stmt [seq, right]
 
   syntax Expr     ::= "-" Expr      [neg, strict, non-assoc]
                     | Expr "*" Expr [mul, strict, left]
@@ -28,16 +30,17 @@ module PLDI-IMP-SYNTAX
                     | Expr "<=" Expr [lteq, strict, non-assoc]
                     | Expr "<"  Expr [lt,   strict, non-assoc]
 
-  syntax Expr     ::= "if" "(" Expr ")" Expr "else" Expr [if,     strict(1)]
-                    | "while" "(" Expr ")" Expr          [while]
-                    | "return" Expr                      [return, strict]
+  syntax Stmt     ::= "if" "(" Expr ")" Stmt "else" Stmt [if,     strict(1)]
+                    | "while" "(" Expr ")" Stmt          [while]
+                    | "return" Expr ";"                  [return, strict]
+                    | "return" ";"
 
-  syntax Expr     ::= Id "=" Expr       [assign, strict(2)]
+  syntax Stmt     ::= Id "=" Expr ";"       [assign, strict(2)]
 
   syntax Args     ::= List{Expr, ","}
 
-  syntax Block    ::= "{" Expr "}"
-  syntax Expr     ::= Block [block]
+  syntax Block    ::= "{" Stmt "}" | "{" "}"
+  syntax Stmt     ::= Block [block]
 
   syntax Param    ::= Id
   syntax Params   ::= List{Param, ","}
@@ -94,7 +97,9 @@ module PLDI-IMP
   rule D:Decl DS => D ~> DS
   rule .Decls => .K
 
+  rule E:Expr ; => E
   rule { E } => E
+  rule {} => .
 
   rule   - X => 0 -Int X
 
@@ -114,10 +119,10 @@ module PLDI-IMP
   rule I1 <= I2 => I1 <=Int I2
   rule I1 <  I2 => I1 <Int  I2
 
-  rule E1 ; E2 => E1 ~> E2
+  rule S1:Stmt S2:Stmt => S1 ~> S2
 
   rule
-    <k> X = V:Value => V ...</k>
+    <k> X = V:Value ; => . ...</k>
     <env> E => E [ X <- V ] </env>
 
   rule
@@ -143,10 +148,10 @@ module PLDI-IMP
   syntax K ::= #log(String) [function, total, hook(PLDI.log)]
 
   syntax Id ::= "log" [token]
-  rule log(S) => #log(S)
+  rule log(S) ; => #log(S) [priority(40)]
 
   rule
-    <k> (X (AS) ~> Rest) => bind(AS, PS) ~> Body </k>
+    <k> (X (AS) ~> Rest) => bind(AS, PS) ~> Body ~> #return(()) </k>
     <stack>  .List => ListItem(frame(Rest, E)) ...</stack>
     <env> E </env>
     <function-id>     X    </function-id>
@@ -156,9 +161,11 @@ module PLDI-IMP
   syntax KItem ::= #return(Value)
 
   rule <k> V               => #return(V) </k>
-  rule <k> (return V ~> _) => #return(V) </k>
+  rule <k> (return V ; ~> _) => #return(V) </k>
 
   rule _:Value => . [owise]
+
+  rule return ; => return () ;
 
   rule
     <k> #return(V) => V ~> F </k>
@@ -176,9 +183,9 @@ module PLDI-IMP
   rule
     while ( C ) E
     => if ( C ) { 
-        E ; 
+        E
         while ( C ) E 
-       } else ()
+       } else ();
 
   syntax Bool ::= isKResult(Expr) [symbol, function]
   rule isKResult(_:Value) => true
