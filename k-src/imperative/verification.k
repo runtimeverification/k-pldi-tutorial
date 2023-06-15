@@ -8,4 +8,5 @@ module VERIFICATION
   imports PLDI-IMP
 
   syntax Id ::= "$n" [token]
+              | "$s" [token]
 endmodule

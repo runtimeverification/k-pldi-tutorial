@@ -9,6 +9,6 @@ fn y(n) {
 }
 
 fn main() {
-  y(10);
+  assert 1 == 1;
   return 0;
 }

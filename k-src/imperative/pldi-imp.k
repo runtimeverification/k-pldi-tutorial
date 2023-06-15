@@ -37,6 +37,8 @@ module PLDI-IMP-SYNTAX
 
   syntax Stmt     ::= Id "=" Expr ";"       [assign, strict(2)]
 
+  syntax Stmt     ::= "assert" Expr ";" [strict]
+
   syntax Args     ::= List{Expr, ","}
 
   syntax Block    ::= "{" Stmt "}" | "{" "}"
@@ -185,7 +187,12 @@ module PLDI-IMP
     => if ( C ) { 
         E
         while ( C ) E 
-       } else ();
+       } else {}
+
+  rule assert true ; => .
+  rule
+    <k> (assert false ; ~> _) => . </k>
+    <exit-code> _ => 1 </exit-code>
 
   syntax Bool ::= isKResult(Expr) [symbol, function]
   rule isKResult(_:Value) => true
