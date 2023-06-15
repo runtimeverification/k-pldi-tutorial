@@ -1,6 +1,17 @@
-int x;
+fn x(a, b, c) {
+  a = 2 + 2 * 3;
+  b = 3;
+  b
+}
 
-{
-  x = 10;
-  assert x <= 100
+fn y(a, b, c) {
+  if (b <= c) {
+    (a + b + c) * x(x(1, 21, 1), b, c)
+  } else {
+    0
+  }
+}
+
+fn main() {
+  y(1, 5, 3) - 18
 }
