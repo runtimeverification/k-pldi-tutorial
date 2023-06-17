@@ -1,6 +1,9 @@
-int x;
+fn transfer(from, to, amount) {
+  #send(from, -amount);
+  #send(to,    amount);
+}
 
-{
-  x = 10;
-  assert x <= 100
+fn main() {
+  transfer(1, 2, 1000);
+  return #balance(1) + #balance(2);
 }

@@ -77,7 +77,7 @@ cover the following topics:
 * Example: arithmetic calculator
 * Developing an imperative language in K
 
-### Session 2 (Symbolic Execution & Proving): 11:20am-12:30pm
+### Session 2 (Symbolic Execution & Proving): 11:20am-12:30pm
 
 * Writing K specifications
 * Extending our language for proving
