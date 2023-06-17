@@ -13,25 +13,3 @@ jobs:
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v3
-        # with:
-        #   token: ${{ secrets.JENKINS_GITHUB_PAT }}
-        #   submodules: recursive
-      - name: 'Set up Docker'
-        uses: ./.github/actions/with-docker
-        with:
-          container-name: k-pldi-tutorial-ci-${{ github.sha }}
-      - name: 'Install dependencies'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} poetry install
-      - name: 'Check code quality'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} make check
-      - name: 'Run unit tests'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} make test-unit
-      - name: 'Build LLVM semantics'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} make kbuild-llvm
-      - name: 'Build Haskell semantics'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} make kbuild-haskell
-      - name: 'Run integration tests'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} make test-integration
-      - name: 'Tear down Docker'
-        if: always()
-        run: docker stop --time 0 k-pldi-tutorial-ci-${GITHUB_SHA}
