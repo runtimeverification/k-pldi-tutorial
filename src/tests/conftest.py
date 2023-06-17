@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from pyk.cli_utils import dir_path
+from pyk.cli.utils import dir_path
 from pyk.kbuild import KBuild, Package
 from pytest import Config, Parser, TempPathFactory
 

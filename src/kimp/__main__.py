@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any
 
-from pyk.cli_utils import dir_path, file_path
+from pyk.cli.utils import dir_path, file_path
 
 from kimp.kimp import KIMP
 
