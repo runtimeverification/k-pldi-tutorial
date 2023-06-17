@@ -1,48 +1,58 @@
-module PLDI-IMP-SYNTAX
-  imports ID-SYNTAX
+module PLDI-IMP-VALUE-SYNTAX
   imports UNSIGNED-INT-SYNTAX
   imports STRING-SYNTAX
-  imports BOOL
+  imports BOOL-SYNTAX
 
   syntax Value    ::= "(" ")"
                     | Int
                     | Bool
                     | String
+endmodule
+
+module PLDI-IMP-EXPR-SYNTAX
+  imports PLDI-IMP-VALUE-SYNTAX
+  imports ID-SYNTAX
+
+  syntax Args     ::= List{Expr, ","}
 
   syntax Expr     ::= Value
                     | Id
                     | Id "(" Args ")"
                     | "(" Expr ")" [bracket]
 
+  syntax Expr     ::= "-" Expr      [group(unary), strict, non-assoc]
+                    | Expr "*" Expr [group(mul), strict, left]
+                    | Expr "/" Expr [group(mul), strict, left]
+                    | Expr "+" Expr [group(add), strict, left]
+                    | Expr "-" Expr [group(add), strict, left]
+
+  syntax Expr     ::= Expr "==" Expr [group(bool),   strict, non-assoc]
+                    | Expr "!=" Expr [group(bool),  strict, non-assoc]
+                    | Expr ">=" Expr [group(bool), strict, non-assoc]
+                    | Expr ">"  Expr [group(bool),   strict, non-assoc]
+                    | Expr "<=" Expr [group(bool), strict, non-assoc]
+                    | Expr "<"  Expr [group(bool),   strict, non-assoc]
+endmodule
+
+module PLDI-IMP-STMT-SYNTAX
+  imports PLDI-IMP-EXPR-SYNTAX
+
   syntax Stmt     ::= Expr ";"
-                    | Stmt Stmt [seq, right]
-
-  syntax Expr     ::= "-" Expr      [neg, strict, non-assoc]
-                    | Expr "*" Expr [mul, strict, left]
-                    | Expr "/" Expr [div, strict, left]
-                    | Expr "+" Expr [add, strict, left]
-                    | Expr "-" Expr [sub, strict, left]
-
-  syntax Expr     ::= Expr "==" Expr [eq,   strict, non-assoc]
-                    | Expr "!=" Expr [neq,  strict, non-assoc]
-                    | Expr ">=" Expr [gteq, strict, non-assoc]
-                    | Expr ">"  Expr [gt,   strict, non-assoc]
-                    | Expr "<=" Expr [lteq, strict, non-assoc]
-                    | Expr "<"  Expr [lt,   strict, non-assoc]
-
-  syntax Stmt     ::= "if" "(" Expr ")" Stmt "else" Stmt [if,     strict(1)]
-                    | "while" "(" Expr ")" Stmt          [while]
-                    | "return" Expr ";"                  [return, strict]
+                    | Stmt Stmt [right, group(seq)]
+                    | "if" "(" Expr ")" Stmt "else" Stmt [group(control),     strict(1)]
+                    | "if" "(" Expr ")"                  [group(control), avoid]
+                    | "while" "(" Expr ")" Stmt          [group(control)]
+                    | "return" Expr ";"                  [group(control), strict]
                     | "return" ";"
-
-  syntax Stmt     ::= Id "=" Expr ";"       [assign, strict(2)]
-
-  syntax Stmt     ::= "assert" Expr ";" [strict]
-
-  syntax Args     ::= List{Expr, ","}
+                    | Id "=" Expr ";"       [group(control), strict(2)]
+                    | "assert" Expr ";" [strict]
 
   syntax Block    ::= "{" Stmt "}" | "{" "}"
-  syntax Stmt     ::= Block [block]
+  syntax Stmt     ::= Block
+endmodule
+
+module PLDI-IMP-SYNTAX
+  imports PLDI-IMP-STMT-SYNTAX
 
   syntax Param    ::= Id
   syntax Params   ::= List{Param, ","}
@@ -52,15 +62,135 @@ module PLDI-IMP-SYNTAX
   syntax Decls    ::= NeList{Decl, ""} [prefer]
   syntax Pgm      ::= Decls
 
-  syntax priorities neg > mul div > add sub > eq neq gteq gt lteq lt > if while assign > seq
+  syntax priorities unary > mul > add > bool > control > seq
 endmodule
 
-module PLDI-IMP
+module PLDI-IMP-EXPR
+  imports PLDI-IMP-CONFIGURATION
+  imports PLDI-IMP-EXPR-SYNTAX
+  imports INT
+  imports BOOL
+
+  rule
+    <k> X:Id => V ...</k>
+    <env> X |-> V ...</env>
+
+  rule   - X => 0 -Int X
+
+  rule X + Y => X +Int Y
+  rule X - Y => X -Int Y
+  rule X * Y => X *Int Y
+  rule X / Y => X /Int Y
+
+  rule B1 == B2 => B1 ==Bool B2
+  rule I1 == I2 => I1 ==Int I2
+
+  rule B1 != B2 => B1 =/=Bool B2
+  rule I1 != I2 => I1 =/=Int  I2
+
+  rule I1 >= I2 => I1 >=Int I2
+  rule I1 >  I2 => I1 >Int  I2
+  rule I1 <= I2 => I1 <=Int I2
+  rule I1 <  I2 => I1 <Int  I2
+endmodule
+
+module PLDI-IMP-CALL-STMT
+  imports PLDI-IMP-CONFIGURATION
+  imports PLDI-IMP-STMT-SYNTAX
+
+  syntax KItem ::= frame(K, Map)
+                 | #return(Value)
+
+  rule
+    <k> (X (AS) ~> Rest) => bind(AS, PS) ~> Body ~> #return(()) </k>
+    <stack>  .List => ListItem(frame(Rest, E)) ...</stack>
+    <env> E </env>
+    <function-id>     X    </function-id>
+    <function-params> PS   </function-params>
+    <function-body>   Body </function-body>
+
+  syntax KItem ::= bind(args: Args, names: List)
+                 | bindArg(arg: Expr, name: Id) [strict(1)]
+
+  rule
+    <k> bind(.Args, .List) => . ...</k>
+    <args> AS => .Map </args>
+    <env> _ => AS </env>
+
+  rule bind(E , AS:Args, ListItem(X) XS) => bindArg(E, X) ~> bind(AS, XS)
+
+  rule
+    <k> bindArg(V:Value, X) => . ...</k>
+    <args> E => E [ X <- V ] </args>
+
+  rule <k> V               => #return(V) </k>
+  rule <k> (return V ; ~> _) => #return(V) </k>
+
+  rule _:Value => . [owise]
+
+  rule return ; => return () ;
+
+  rule
+    <k> #return(V) => V ~> F </k>
+    <stack> ListItem(frame(F, E)) => .List ...</stack>
+    <env> _ => E </env>
+
+  rule
+    <k> #return(V) => . ... </k>
+    <stack> .List </stack>
+    <exit-code> _ => V </exit-code>
+endmodule
+
+module PLDI-IMP-CONTROL-STMT
+  imports PLDI-IMP-CONFIGURATION
+
+  rule if ( C ) E => if ( C ) E else {}
+
+  rule if ( true  ) E1 else _  => E1
+  rule if ( false ) _  else E2 => E2
+
+  rule
+    while ( C ) E
+    => if ( C ) { 
+        E
+        while ( C ) E 
+       } else {}
+
+  rule assert true ; => .
+  rule
+    <k> (assert false ; ~> _) => . </k>
+    <exit-code> _ => 1 </exit-code>
+endmodule
+
+module PLDI-IMP-PRINT-STMT
+  imports PLDI-IMP-STMT-SYNTAX
+  imports STRING
+
+  syntax K ::= #print(String) [function, total, hook(PLDI.log)]
+
+  syntax Id ::= "print" [token]
+  rule print(S) ; => #print(S) [priority(40)]
+endmodule
+
+module PLDI-IMP-STMT
+  imports PLDI-IMP-CALL-STMT
+  imports PLDI-IMP-CONTROL-STMT
+  imports PLDI-IMP-PRINT-STMT
+
+  rule
+    <k> X = V:Value ; => . ...</k>
+    <env> E => E [ X <- V ] </env>
+
+  rule E:Expr ; => E
+  rule { E } => E
+  rule {} => .
+  rule S1:Stmt S2:Stmt => S1 ~> S2
+endmodule
+
+module PLDI-IMP-CONFIGURATION
   imports PLDI-IMP-SYNTAX
   imports LIST
-  imports INT
   imports MAP
-  imports STRING
 
   syntax Id       ::= "dummy" [token]
                     | "main"  [token]
@@ -78,6 +208,13 @@ module PLDI-IMP
         <function-body>   .K    </function-body>
       </function>
     </functions>
+endmodule
+
+module PLDI-IMP
+  imports PLDI-IMP-CONFIGURATION
+  imports PLDI-IMP-EXPR
+  imports PLDI-IMP-STMT
+  imports DOMAINS
 
   rule
     <k> fn X (PS) Body => . ...</k>
@@ -98,101 +235,6 @@ module PLDI-IMP
 
   rule D:Decl DS => D ~> DS
   rule .Decls => .K
-
-  rule E:Expr ; => E
-  rule { E } => E
-  rule {} => .
-
-  rule   - X => 0 -Int X
-
-  rule X + Y => X +Int Y
-  rule X - Y => X -Int Y
-  rule X * Y => X *Int Y
-  rule X / Y => X /Int Y
-
-  rule B1 == B2 => B1 ==Bool B2
-  rule I1 == I2 => I1 ==Int I2
-
-  rule B1 != B2 => B1 =/=Bool B2
-  rule I1 != I2 => I1 =/=Int  I2
-
-  rule I1 >= I2 => I1 >=Int I2
-  rule I1 >  I2 => I1 >Int  I2
-  rule I1 <= I2 => I1 <=Int I2
-  rule I1 <  I2 => I1 <Int  I2
-
-  rule S1:Stmt S2:Stmt => S1 ~> S2
-
-  rule
-    <k> X = V:Value ; => . ...</k>
-    <env> E => E [ X <- V ] </env>
-
-  rule
-    <k> X:Id => V ...</k>
-    <env> X |-> V ...</env>
-
-  syntax KItem ::= bind(args: Args, names: List)
-                 | bindArg(arg: Expr, name: Id) [strict(1)]
-
-  rule
-    <k> bind(.Args, .List) => . ...</k>
-    <args> AS => .Map </args>
-    <env> _ => AS </env>
-
-  rule bind(E , AS:Args, ListItem(X) XS) => bindArg(E, X) ~> bind(AS, XS)
-
-  rule
-    <k> bindArg(V:Value, X) => . ...</k>
-    <args> E => E [ X <- V ] </args>
-
-  syntax KItem ::= frame(K, Map)
-
-  syntax K ::= #log(String) [function, total, hook(PLDI.log)]
-
-  syntax Id ::= "log" [token]
-  rule log(S) ; => #log(S) [priority(40)]
-
-  rule
-    <k> (X (AS) ~> Rest) => bind(AS, PS) ~> Body ~> #return(()) </k>
-    <stack>  .List => ListItem(frame(Rest, E)) ...</stack>
-    <env> E </env>
-    <function-id>     X    </function-id>
-    <function-params> PS   </function-params>
-    <function-body>   Body </function-body>
-
-  syntax KItem ::= #return(Value)
-
-  rule <k> V               => #return(V) </k>
-  rule <k> (return V ; ~> _) => #return(V) </k>
-
-  rule _:Value => . [owise]
-
-  rule return ; => return () ;
-
-  rule
-    <k> #return(V) => V ~> F </k>
-    <stack> ListItem(frame(F, E)) => .List ...</stack>
-    <env> _ => E </env>
-
-  rule
-    <k> #return(V) => . ... </k>
-    <stack> .List </stack>
-    <exit-code> _ => V </exit-code>
-
-  rule if ( true  ) E1 else _  => E1
-  rule if ( false ) _  else E2 => E2
-
-  rule
-    while ( C ) E
-    => if ( C ) { 
-        E
-        while ( C ) E 
-       } else {}
-
-  rule assert true ; => .
-  rule
-    <k> (assert false ; ~> _) => . </k>
-    <exit-code> _ => 1 </exit-code>
 
   syntax Bool ::= isKResult(Expr) [symbol, function]
   rule isKResult(_:Value) => true
