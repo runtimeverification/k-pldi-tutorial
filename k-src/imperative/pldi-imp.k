@@ -32,6 +32,9 @@ module PLDI-IMP-EXPR-SYNTAX
                     | Expr ">"  Expr [group(bool),   strict, non-assoc]
                     | Expr "<=" Expr [group(bool), strict, non-assoc]
                     | Expr "<"  Expr [group(bool),   strict, non-assoc]
+
+  syntax Expr     ::= #balance(Expr)    [strict]
+                    | #send(Expr, Expr) [strict]
 endmodule
 
 module PLDI-IMP-STMT-SYNTAX
@@ -172,10 +175,40 @@ module PLDI-IMP-PRINT-STMT
   rule print(S) ; => #print(S) [priority(40)]
 endmodule
 
+module PLDI-IMP-BALANCE-EXPR
+  imports PLDI-IMP-CONFIGURATION
+  imports INT
+
+  syntax KItem ::= #setBalance(addr: Int, balance: Int)
+  rule
+    <k> #setBalance(Addr, Balance) => Balance ...</k>
+    <balances> BM => BM [ Addr <- Balance ] </balances>
+
+  rule
+    <k> #balance(Addr) => BM [ Addr ] ...</k>
+    <balances> BM </balances>
+    requires Addr in_keys(BM)
+  rule #balance(_) => 0 [owise]
+
+  rule #send(0, _) => 0
+
+  rule
+    <k>
+      #send(Addr:Int, Amount) => #setBalance(Addr, maxInt(B +Int Amount, 0))
+      ...
+    </k>
+    <balances> Addr |-> B ...</balances>
+    requires Addr =/=Int 0
+
+  rule #send(Addr:Int, Amount) => #setBalance(Addr, maxInt(Amount, 0))
+  [owise]
+endmodule
+
 module PLDI-IMP-STMT
   imports PLDI-IMP-CALL-STMT
   imports PLDI-IMP-CONTROL-STMT
   imports PLDI-IMP-PRINT-STMT
+  imports PLDI-IMP-BALANCE-EXPR
 
   rule
     <k> X = V:Value ; => . ...</k>
@@ -201,6 +234,7 @@ module PLDI-IMP-CONFIGURATION
     <stack>     .List </stack>
     <env>       .Map  </env>
     <args>      .Map  </args>
+    <balances>  .Map  </balances>
     <functions>
       <function multiplicity="*" type="Map">
         <function-id>     dummy </function-id>

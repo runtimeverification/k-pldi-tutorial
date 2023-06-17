@@ -1,14 +1,9 @@
-fn y(n) {
-  if(n == 0) {
-    log("Blastoff!");
-    return;
-  } else {
-    log("Counting down...");
-    return y(n - 1);
-  }
+fn transfer(from, to, amount) {
+  #send(from, -amount);
+  #send(to,    amount);
 }
 
 fn main() {
-  assert 1 == 1;
-  return 0;
+  transfer(1, 2, 1000);
+  return #balance(1) + #balance(2);
 }
