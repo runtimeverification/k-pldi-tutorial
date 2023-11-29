@@ -28,7 +28,7 @@ toolchain that you can begin to think about developing your own semantics in K.
 I hope to keep things reasonably interactive, and aim for attendees to be able
 to follow along with the demonstrations in the tutorial.
 
-## Attendee Information
+## Attendee Information
 
 The tutorial will be held from **9am - 12:30pm** on **Saturday 17th June**, in
 the **Magnolia 17** room. Full event details are on the PLDI
