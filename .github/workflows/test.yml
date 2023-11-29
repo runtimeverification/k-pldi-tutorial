@@ -17,7 +17,7 @@ jobs:
       - name: 'Set up Docker'
         uses: ./.github/actions/with-docker
         with:
-          container-name: k-plid-tutorial-ci-${{ github.sha }}
+          container-name: k-pldi-tutorial-ci-${{ github.sha }}
 
       - name: 'Run integration tests'
         run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} kompile --version
