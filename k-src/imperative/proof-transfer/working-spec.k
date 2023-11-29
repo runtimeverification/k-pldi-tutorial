@@ -1,4 +1,4 @@
-module SPEC
+module WORKING-SPEC
   imports VERIFICATION
 
   claim
@@ -34,4 +34,5 @@ module SPEC
   requires  B1 >=Int 0
     andBool B2 >=Int 0
     andBool N  >=Int 0
+    andBool B1 >=Int N
 endmodule
