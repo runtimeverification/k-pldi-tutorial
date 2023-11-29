@@ -20,7 +20,7 @@ jobs:
           container-name: k-pldi-tutorial-ci-${{ github.sha }}
 
       - name: 'Run integration tests'
-        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} kompile --version
+        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} ./tests.sh
 
       - name: 'Tear down Docker'
         if: always()

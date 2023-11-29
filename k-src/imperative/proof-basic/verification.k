@@ -1,4 +1,4 @@
-require "pldi-imp.k"
+require "../pldi-imp.k"
 
 module VERIFICATION-SYNTAX
 endmodule

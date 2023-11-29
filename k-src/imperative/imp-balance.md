@@ -48,37 +48,37 @@ before this production appears at the top of the K cell), and to set the parsing
 associativity of each one. A unique label is given to each one, which we will
 use later to specify parsing priorities:
 ```k
-  syntax Expr     ::= "-" Expr      [neg, strict, non-assoc]
-                    | Expr "*" Expr [mul, strict, left]
-                    | Expr "/" Expr [div, strict, left]
-                    | Expr "+" Expr [add, strict, left]
-                    | Expr "-" Expr [sub, strict, left]
+  syntax Expr     ::= "-" Expr      [group(neg), strict, non-assoc]
+                    | Expr "*" Expr [group(mul), strict, left]
+                    | Expr "/" Expr [group(div), strict, left]
+                    | Expr "+" Expr [group(add), strict, left]
+                    | Expr "-" Expr [group(sub), strict, left]
 ```
 
 Boolean expressions are treated similarly:
 ```k
-  syntax Expr     ::= Expr "==" Expr [eq,   strict, non-assoc]
-                    | Expr "!=" Expr [neq,  strict, non-assoc]
-                    | Expr ">=" Expr [gteq, strict, non-assoc]
-                    | Expr ">"  Expr [gt,   strict, non-assoc]
-                    | Expr "<=" Expr [lteq, strict, non-assoc]
-                    | Expr "<"  Expr [lt,   strict, non-assoc]
+  syntax Expr     ::= Expr "==" Expr [group(eq),   strict, non-assoc]
+                    | Expr "!=" Expr [group(neq),  strict, non-assoc]
+                    | Expr ">=" Expr [group(gteq), strict, non-assoc]
+                    | Expr ">"  Expr [group(gt),   strict, non-assoc]
+                    | Expr "<=" Expr [group(lteq), strict, non-assoc]
+                    | Expr "<"  Expr [group(lt),   strict, non-assoc]
 ```
 
 The `prefer` attribute here allows for parsing ambiguities to be resolved. We
 parse `let x = 2 + 2` as `let x = (2 + 2)` rather than `(let x = 2) + 2` by
 preferring the top-level `let` production:
 ```k
-  syntax Expr     ::= "let" Id "=" Expr [let,    strict(2), prefer]
-                    | Id "=" Expr       [assign, strict(2)]
+  syntax Expr     ::= "let" Id "=" Expr [group(let),    strict(2), prefer]
+                    | Id "=" Expr       [group(assign), strict(2)]
 ```
 
 We support three basic control flow elements: if-else, while loops, and early
 returns:
 ```k
-  syntax Expr     ::= "if" "(" Expr ")" Expr "else" Expr [if,     strict(1)]
-                    | "while" "(" Expr ")" Expr          [while]
-                    | "return" Expr                      [return, strict]
+  syntax Expr     ::= "if" "(" Expr ")" Expr "else" Expr [group(if),     strict(1)]
+                    | "while" "(" Expr ")" Expr          [group(while)]
+                    | "return" Expr                      [group(return), strict]
 ```
 
 Expressions can be sequenced with `;`, and a list of expressions makes up a
@@ -88,7 +88,7 @@ as well:
 ```k
   syntax Exprs    ::= NeList{Expr, ";"}
   syntax Block    ::= "{" Exprs "}"
-  syntax Expr     ::= Block [block]
+  syntax Expr     ::= Block [group(block)]
 ```
 
 Expressions can be parenthesized:

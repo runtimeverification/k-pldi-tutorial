@@ -1,7 +1,16 @@
+module CHANGE-SYNTAX
+  imports UNSIGNED-INT-SYNTAX
+
+  syntax Pgm ::= "change" Int
+endmodule
+
 module CHANGE
   imports INT
   imports MAP
   imports LIST
+  imports CHANGE-SYNTAX
+
+  rule change I => makeChange(I)
 
   syntax Map ::=  makeChange(Int)             [function]
                | #makeChange(Int, List, Map)  [function]
@@ -16,11 +25,11 @@ module CHANGE
   rule makeChange(X) => #makeChange(X, #available(), .Map)
 
   rule #makeChange(X, ListItem(C) Rest, M) =>
-       #let Existing:Int = M [ C ] orDefault 0 #in
+       #let Existing = M [ C ] orDefault 0 #in
        #makeChange(
          X -Int C,
          ListItem(C) Rest,
-         M [ C <- Existing +Int 1 ])
+         M [ C <- {Existing}:>Int +Int 1 ])
     requires X >=Int C
 
   rule #makeChange(X, ListItem(C) Rest, M) =>
