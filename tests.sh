@@ -33,3 +33,5 @@ kompile -v k-src/imperative/proof-transfer/verification.md  \
 kprove                                    \
   --definition .build/proof-transfer      \
   k-src/imperative/proof-transfer/working-spec.k
+
+kompile -v k-src/pcl/pcl.md -o .build/pcl
