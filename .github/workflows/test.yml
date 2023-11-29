@@ -13,3 +13,15 @@ jobs:
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v3
+
+      - name: 'Set up Docker'
+        uses: ./.github/actions/with-docker
+        with:
+          container-name: k-plid-tutorial-ci-${{ github.sha }}
+
+      - name: 'Run integration tests'
+        run: docker exec --user user k-pldi-tutorial-ci-${GITHUB_SHA} kompile --version
+
+      - name: 'Tear down Docker'
+        if: always()
+        run: docker stop --time 0 k-pldi-tutorial-ci-${GITHUB_SHA}
