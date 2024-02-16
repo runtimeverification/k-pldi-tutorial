@@ -423,7 +423,7 @@ If not, we behave similarly:
 This function is a hook that guides the compiler's generation of heating and
 cooling rules for expressions.
 ```k
-  syntax Bool ::= isKResult(Expr) [symbol, function]
+  syntax Bool ::= isKResult(Expr) [symbol(isKResult), function]
   rule isKResult(_:Value) => true
   rule isKResult(_) => false [owise]
 ```

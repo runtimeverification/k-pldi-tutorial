@@ -270,7 +270,7 @@ module PLDI-IMP
   rule D:Decl DS => D ~> DS
   rule .Decls => .K
 
-  syntax Bool ::= isKResult(Expr) [symbol, function]
+  syntax Bool ::= isKResult(Expr) [symbol(isKResult), function]
   rule isKResult(_:Value) => true
   rule isKResult(_) => false [owise]
 endmodule
